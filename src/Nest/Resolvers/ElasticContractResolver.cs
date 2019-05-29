@@ -13,23 +13,34 @@ namespace Nest.Resolvers
 {
 	public class ElasticContractResolver : DefaultContractResolver
 	{
+		private static readonly IDictionary<Type, JsonContract> ContractsCache
+			= new Dictionary<Type, JsonContract>();
+
+		private static readonly IDictionary<Tuple<Type, MemberSerialization>, IList<JsonProperty>> PropertiesCache
+			= new Dictionary<Tuple<Type, MemberSerialization>, IList<JsonProperty>>();
+
 		/// <summary>
 		/// ConnectionSettings can be requested by JsonConverter's.
 		/// </summary>
 		public IConnectionSettingsValues ConnectionSettings { get; private set; }
 
 		public ElasticContractResolver(IConnectionSettingsValues connectionSettings)
-			: base(true)
+			: base()
 		{
 			this.ConnectionSettings = connectionSettings;
 		}
 
 		protected override JsonContract CreateContract(Type objectType)
 		{
-			JsonContract contract = base.CreateContract(objectType);
+			JsonContract cachedContract;
+			if (ContractsCache.TryGetValue(objectType, out cachedContract))
+			{
+				return cachedContract;
+			}
+
+			var contract = base.CreateContract(objectType);
 
 			// this will only be called once and then cached
-
 			if (objectType == typeof(IDictionary<string, AnalyzerBase>))
 				contract.Converter = new AnalyzerCollectionConverter();
 
@@ -84,12 +95,19 @@ namespace Nest.Resolvers
 					break;
 				}
 			}
-
+			
+			ContractsCache[objectType] = contract;
 			return contract;
 		}
 
 		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
 		{
+			IList<JsonProperty> cachedProperties;
+			if (PropertiesCache.TryGetValue(Tuple.Create(type, memberSerialization), out cachedProperties))
+			{
+				return cachedProperties;
+			}
+
 			var defaultProperties = base.CreateProperties(type, memberSerialization);
 			var lookup = defaultProperties.ToLookup(p => p.PropertyName);
 
@@ -123,6 +141,9 @@ namespace Nest.Resolvers
 			//defaultProperties = PropertiesOf<IGlobalInnerHit>(type, memberSerialization, defaultProperties, lookup);
 			defaultProperties = PropertiesOf<IInnerHits>(type, memberSerialization, defaultProperties, lookup);
 			defaultProperties = PropertiesOf<INestSerializable>(type, memberSerialization, defaultProperties, lookup);
+			
+			PropertiesCache[Tuple.Create(type, memberSerialization)] = defaultProperties;
+
 			return defaultProperties;
 		}
 
@@ -142,7 +163,7 @@ namespace Nest.Resolvers
 				{
 					defaultProperties.Add(p);
 				}
-				return defaultProperties;
+				return defaultProperties.GroupBy(p => p.PropertyName).Select(g => g.First()).ToList();
 			}
 			return jsonProperties.Concat(defaultProperties).GroupBy(p=>p.PropertyName).Select(g=>g.First()).ToList();
 		}

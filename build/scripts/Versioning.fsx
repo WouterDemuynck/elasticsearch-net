@@ -10,7 +10,8 @@ open Projects
 
 type Versioning() = 
     
-    static let suffix = fun (prerelease: PreRelease) -> sprintf "-%s%i" prerelease.Name prerelease.Number.Value
+    static let suffix = fun (prerelease: PreRelease) -> sprintf "-%s" prerelease.Name
+    static let aprimo = "aprimo.4"
 
     //returns the current version number 
     //when version is passed to script we always use that
@@ -20,7 +21,7 @@ type Versioning() =
         let re = @"\[assembly\: AssemblyFileVersionAttribute\(""([^""]+)""\)\]"
         let matches = Regex.Matches(assemblyFileContents,re)
         let defaultVersion = regex_replace re "$1" (matches.Item(0).Captures.Item(0).Value)
-        let timestampedVersion = (sprintf "%s-ci%s" defaultVersion (DateTime.UtcNow.ToString("yyyyMMddHHmmss")))
+        let timestampedVersion = (sprintf "%s-%s" defaultVersion aprimo)
         trace ("timestamped: " + timestampedVersion)
         let fileVersion = (getBuildParamOrDefault "version" timestampedVersion)
         let fv = if isNullOrEmpty fileVersion then timestampedVersion else fileVersion
@@ -30,16 +31,16 @@ type Versioning() =
     //CI builds need to be one minor ahead of the whatever we find in our develop branch
     static member FileVersion = 
         match fileVersion with
-        | f when f.Contains("-ci") ->
-            let v = regex_replace "-ci.+$" "" f
-            let prerelease = regex_replace "^.+-(ci.+)$" "$1" f
+        | f when f.Contains("-aprimo\.") ->
+            let v = regex_replace "-aprimo\..+$" "" f
+            let prerelease = regex_replace "^.+-(aprimo\..+)$" "$1" f
             let version = SemVerHelper.parse v
-            sprintf "%d.%d.0-%s" version.Major (version.Minor + 1) prerelease
+            sprintf "%d.%d.0-%s" version.Major version.Minor prerelease
         | _ -> fileVersion
 
     static member AssemblyVersion = 
         let fileVersion = Versioning.FileVersion
-        let fv = if fileVersion.Contains("-ci") then (regex_replace "-ci.+$" "" fileVersion) else fileVersion
+        let fv = if fileVersion.Contains("-aprimo\.") then (regex_replace "-aprimo\..+$" "" fileVersion) else fileVersion
         traceFAKE "patched fileVersion %s" fv
         let version = SemVerHelper.parse fv
     
@@ -47,7 +48,7 @@ type Versioning() =
         let assemblyVersion = sprintf "%i.0.0%s" version.Major assemblySuffix
       
         match (assemblySuffix, version.Minor, version.Patch) with
-        | (s, m, p) when s <> "" && s <> "ci" && (m <> 0 || p <> 0)  -> failwithf "Cannot create prereleases for minor or major builds!"
+        | (s, m, p) when s <> "" && s <> "-aprimo" && (m <> 0 || p <> 0)  -> failwithf "Cannot create prereleases for minor or major builds!"
         | ("", _, _) -> traceFAKE "Building fileversion %s for asssembly version %s" fileVersion assemblyVersion
         | _ -> traceFAKE "Building prerelease %s for major assembly version %s " fileVersion assemblyVersion
     

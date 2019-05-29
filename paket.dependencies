@@ -1,6 +1,6 @@
 source https://www.nuget.org/api/v2/
 
-nuget Nuget.CommandLine 2.8.3
+nuget Nuget.CommandLine 4.5.1
 nuget AppDomainToolkit 1.0.4.1
 nuget Autofac 3.3.1
 nuget Autofac.Extras.FakeItEasy 3.0.2
@@ -11,7 +11,7 @@ nuget FluentAssertions 2.2.0.0
 nuget FubuCore 1.0.0.225
 nuget FubuCsProjFile 1.1.0.83
 nuget Moq 4.2.1312.1622
-nuget Newtonsoft.Json 6.0.1
+nuget Newtonsoft.Json 10.0.3
 nuget NUnit 2.6.4
 nuget RazorMachine 2.6.1
 nuget ShellProgressBar 1.0.0.0

@@ -1,6 +1,6 @@
 NUGET="build/tools/nuget/nuget.exe"
 FAKE="build/tools/FAKE/tools/FAKE.exe"
-NUNIT="build/tools/NUnit.Runners/tools/nunit-console.exe"
+NUNIT="build/tools/NUnit.ConsoleRunner/tools/nunit3-console.exe"
 FSHARPCLI="build/tools/Fsharp.Formatting.CommandTool/Fsharp.Formatting.CommandTool.nupkg"
 SOURCELINK="build/tools/SourceLink.Fake/SourceLink.Fake.nupkg"
 
@@ -20,7 +20,7 @@ fi
 # we need nunit-console to run our tests
 if [[ ! -f "$NUNIT" ]]; then
     echo Nunit not found.. Installing
-    mono --runtime=v4.0 "$NUGET" "install" "NUnit.Runners" "-OutputDirectory" "build/tools" "-ExcludeVersion" "-Prerelease"
+    mono --runtime=v4.0 "$NUGET" "install" "NUnit.Console" "-OutputDirectory" "build/tools" "-ExcludeVersion" "-Prerelease"
 fi
 
 if [[ ! -f "$FSHARPCLI" ]]; then

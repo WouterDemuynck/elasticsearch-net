@@ -12,15 +12,15 @@ if not exist build\tools\FAKE\tools\Fake.exe (
     "build\tools\nuget\nuget.exe" "install" "FAKE" "-OutputDirectory" "build\tools" "-Version" "3.28.8" "-ExcludeVersion"
 )
 
-if not exist build\tools\gitlink\lib\net45\gitlink.exe (
+if not exist build\tools\gitlink\build\net45\gitlink.exe (
     ECHO Local node not found.. Installing..
     "build\tools\nuget\nuget.exe" "install" "gitlink" "-OutputDirectory" "build\tools" "-ExcludeVersion" "-Prerelease"
 )
 
 REM we need nunit-console to run our tests
-if not exist build\tools\NUnit.Runners\tools\nunit-console.exe (
-    ECHO Nunit not found.. Installing
-    "build\tools\nuget\nuget.exe" "install" "NUnit.Runners" "-OutputDirectory" "build\tools" "-ExcludeVersion" "-Prerelease"
+if not exist build\tools\NUnit.ConsoleRunner\tools\nunit3-console.exe (
+    ECHO NUnit not found.. Installing
+    "build\tools\nuget\nuget.exe" "install" "NUnit.Console" "-OutputDirectory" "build\tools" "-ExcludeVersion" "-Prerelease"
 )
 
 REM we need wintersmith to build our documentation which in turn needs npm/node
